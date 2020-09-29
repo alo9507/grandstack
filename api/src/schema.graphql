@@ -14,3 +14,7 @@ type User {
   inboundCount: Int
     @cypher(statement: "RETURN SIZE( (this)<-[:NODDED_AT]-(:User))")
 }
+
+type Mutation {
+  setMessage(message: String): String
+}
