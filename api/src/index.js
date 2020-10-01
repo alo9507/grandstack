@@ -33,6 +33,7 @@ const driver = neo4j.driver(
     encrypted: process.env.NEO4J_ENCRYPTED ? 'ENCRYPTION_ON' : 'ENCRYPTION_OFF',
   }
 )
+const session = driver.session()
 
 /*
  * Perform any database initialization steps such as
@@ -70,8 +71,18 @@ const user = {
 
 const resolvers = {
   Query: {
-    user: () => {
-      return user
+    user: (parent, args, context, info) => {
+      return session
+        .run('MATCH (n:User) WHERE n.id=$id RETURN n', { id: args.id })
+        .then((result) => {
+          return result.records[0].get(0).properties
+        })
+    },
+    users: (parent, args, context, info) => {
+      return session.run('MATCH (n) RETURN n').then((result) => {
+        const users = result.records.map((record) => record.get(0).properties)
+        return users
+      })
     },
   },
   Mutation: {
