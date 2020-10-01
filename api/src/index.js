@@ -4,7 +4,7 @@ import express from 'express'
 import neo4j from 'neo4j-driver'
 import dotenv from 'dotenv'
 import { initializeDatabase } from './initialize'
-
+import resolvers from './resolvers'
 // set environment variables from .env
 dotenv.config()
 
@@ -33,7 +33,6 @@ const driver = neo4j.driver(
     encrypted: process.env.NEO4J_ENCRYPTED ? 'ENCRYPTION_ON' : 'ENCRYPTION_OFF',
   }
 )
-const session = driver.session()
 
 /*
  * Perform any database initialization steps such as
@@ -54,54 +53,18 @@ const init = async (driver) => {
 
 init(driver)
 
-const user = {
-  id: 'df',
-  name: 'df',
-  bio: 'df',
-  whatAmIDoing: 'df',
-  location: 'df',
-  isVisible: true,
-  sex: 'df',
-  age: 25,
-  outbound: [],
-  outboundCount: 0,
-  inbound: [],
-  inboundCount: 0,
-}
-
-const resolvers = {
-  Query: {
-    user: (parent, args, context, info) => {
-      return session
-        .run('MATCH (n:User) WHERE n.id=$id RETURN n', { id: args.id })
-        .then((result) => {
-          return result.records[0].get(0).properties
-        })
-    },
-    users: (parent, args, context, info) => {
-      return session.run('MATCH (n) RETURN n').then((result) => {
-        const users = result.records.map((record) => record.get(0).properties)
-        return users
-      })
-    },
-  },
-  Mutation: {
-    message: (parent, args) => {
-      return { message: args.message, success: true }
-    },
-  },
-}
-
 /*
  * Create a new ApolloServer instance, serving the GraphQL schema
  * created using makeAugmentedSchema above and injecting the Neo4j driver
  * instance into the context object so it is available in the
  * generated resolvers to connect to the database.
  */
+const session = driver.session()
+
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  context: { driver, neo4jDatabase: process.env.NEO4J_DATABASE },
+  context: { driver, session, neo4jDatabase: process.env.NEO4J_DATABASE },
   introspection: true,
   playground: true,
 })
