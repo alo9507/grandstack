@@ -2,7 +2,6 @@
 // as a lambda function
 
 const { ApolloServer } = require('apollo-server-lambda')
-const { makeAugmentedSchema } = require('neo4j-graphql-js')
 const neo4j = require('neo4j-driver')
 
 // This module is copied during the build step
@@ -20,8 +19,37 @@ const driver = neo4j.driver(
   }
 )
 
+const user = {
+  id: 'df',
+  name: 'df',
+  bio: 'df',
+  whatAmIDoing: 'df',
+  location: 'df',
+  isVisible: true,
+  sex: 'df',
+  age: 25,
+  outbound: [],
+  outboundCount: 0,
+  inbound: [],
+  inboundCount: 0,
+}
+
+const resolvers = {
+  Query: {
+    user: () => {
+      return user
+    },
+  },
+  Mutation: {
+    message: (parent, args) => {
+      return { message: args.message, success: true }
+    },
+  },
+}
+
 const server = new ApolloServer({
-  schema: makeAugmentedSchema({ typeDefs }),
+  typeDefs,
+  resolvers,
   context: { driver, neo4jDatabase: process.env.NEO4J_DATABASE },
 })
 

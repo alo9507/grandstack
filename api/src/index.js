@@ -2,7 +2,6 @@ import { typeDefs } from './graphql-schema'
 import { ApolloServer } from 'apollo-server-express'
 import express from 'express'
 import neo4j from 'neo4j-driver'
-import { makeAugmentedSchema } from 'neo4j-graphql-js'
 import dotenv from 'dotenv'
 import { initializeDatabase } from './initialize'
 
@@ -18,18 +17,6 @@ const app = express()
  * in generated queries and/or mutations. Read more in the docs:
  * https://grandstack.io/docs/neo4j-graphql-js-api.html#makeaugmentedschemaoptions-graphqlschema
  */
-
-const schema = makeAugmentedSchema({
-  typeDefs,
-  config: {
-    query: {
-      exclude: ['RatingCount'],
-    },
-    mutation: {
-      exclude: ['RatingCount'],
-    },
-  },
-})
 
 /*
  * Create a Neo4j driver instance to connect to the database
@@ -66,6 +53,34 @@ const init = async (driver) => {
 
 init(driver)
 
+const user = {
+  id: 'df',
+  name: 'df',
+  bio: 'df',
+  whatAmIDoing: 'df',
+  location: 'df',
+  isVisible: true,
+  sex: 'df',
+  age: 25,
+  outbound: [],
+  outboundCount: 0,
+  inbound: [],
+  inboundCount: 0,
+}
+
+const resolvers = {
+  Query: {
+    user: () => {
+      return user
+    },
+  },
+  Mutation: {
+    message: (parent, args) => {
+      return { message: args.message, success: true }
+    },
+  },
+}
+
 /*
  * Create a new ApolloServer instance, serving the GraphQL schema
  * created using makeAugmentedSchema above and injecting the Neo4j driver
@@ -73,8 +88,9 @@ init(driver)
  * generated resolvers to connect to the database.
  */
 const server = new ApolloServer({
+  typeDefs,
+  resolvers,
   context: { driver, neo4jDatabase: process.env.NEO4J_DATABASE },
-  schema: schema,
   introspection: true,
   playground: true,
 })

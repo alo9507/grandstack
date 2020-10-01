@@ -5,12 +5,23 @@ type User {
   whatAmIDoing: String
   location: String
   isVisible: Boolean
-  age: Int
   sex: String
-  outbound: [User] @relation(name: "NODDED_AT", direction: "OUT")
+  age: Int
+  outbound: [User]
   outboundCount: Int
-    @cypher(statement: "RETURN SIZE( (this)-[:NODDED_AT]->(:User))")
-  inbound: [User] @relation(name: "NODDED_AT", direction: "IN")
+  inbound: [User]
   inboundCount: Int
-    @cypher(statement: "RETURN SIZE( (this)<-[:NODDED_AT]-(:User))")
+}
+
+type Query {
+  user: User
+}
+
+type Mutation {
+  message(message: String!): MessageResponse
+}
+
+type MessageResponse {
+  success: Boolean!
+  message: String
 }
