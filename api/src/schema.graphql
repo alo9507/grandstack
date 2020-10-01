@@ -20,6 +20,12 @@ type Query {
 
 type Mutation {
   message(message: String!): MessageResponse
+  sendNod(from: ID!, to: ID!): SendNodResponse
+}
+
+type SendNodResponse {
+  from: String
+  to: String
 }
 
 type MessageResponse {

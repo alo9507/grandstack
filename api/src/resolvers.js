@@ -31,6 +31,17 @@ const resolvers = {
     },
   },
   User: {
+    outbound: (parent, args, context, info) => {
+      const session = context.driver.session()
+      return session
+        .run('MATCH (n { id: $id })-[r:NODDED_AT]->(other:User) RETURN other', {
+          id: parent.id,
+        })
+        .then((result) => {
+          session.close()
+          return result.records.map((record) => record.get('other').properties)
+        })
+    },
     outboundCount: (parent, args, context, info) => {
       const session = context.driver.session()
       return session
@@ -42,10 +53,47 @@ const resolvers = {
           return toNumber(result.records[0].get('COUNT(r)'))
         })
     },
+    inbound: (parent, args, context, info) => {
+      const session = context.driver.session()
+      return session
+        .run('MATCH (n { id: $id })<-[r:NODDED_AT]-(other:User) RETURN other', {
+          id: parent.id,
+        })
+        .then((result) => {
+          session.close()
+          return result.records.map((record) => record.get('other').properties)
+        })
+    },
+    inboundCount: (parent, args, context, info) => {
+      const session = context.driver.session()
+      return session
+        .run('MATCH (n { id: $id })<-[r:NODDED_AT]-(:User) RETURN COUNT(r)', {
+          id: parent.id,
+        })
+        .then((result) => {
+          session.close()
+          return toNumber(result.records[0].get('COUNT(r)'))
+        })
+    },
   },
   Mutation: {
     message: (parent, args) => {
       return { message: args.message, success: true }
+    },
+    sendNod: (parent, args, context) => {
+      const session = context.driver.session()
+      return session
+        .run(
+          'MATCH (a:User),(b:User) WHERE a.id = $from AND b.id = $to CREATE (a)-[r:NODDED_AT]->(b) RETURN a.id, b.id',
+          { from: args.from, to: args.to }
+        )
+        .then((result) => {
+          session.close()
+          return {
+            from: result.records[0].get('a.id'),
+            to: result.records[0].get('b.id'),
+          }
+        })
     },
   },
 }
