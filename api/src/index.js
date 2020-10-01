@@ -7,7 +7,7 @@ import { initializeDatabase } from './initialize'
 import resolvers from './resolvers'
 // set environment variables from .env
 dotenv.config()
-
+import { makeAugmentedSchema } from 'neo4j-graphql-js'
 const app = express()
 
 /*
@@ -59,12 +59,11 @@ init(driver)
  * instance into the context object so it is available in the
  * generated resolvers to connect to the database.
  */
-const session = driver.session()
 
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  context: { driver, session, neo4jDatabase: process.env.NEO4J_DATABASE },
+  context: { driver, neo4jDatabase: process.env.NEO4J_DATABASE },
   introspection: true,
   playground: true,
 })
