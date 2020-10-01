@@ -20,17 +20,8 @@ const driver = neo4j.driver(
   }
 )
 
-const resolvers = {
-  Mutation: {
-    setMessage: (_, __) => {
-      return 'hi'
-    },
-  },
-}
-
 const server = new ApolloServer({
   schema: makeAugmentedSchema({ typeDefs }),
-  resolvers,
   context: { driver, neo4jDatabase: process.env.NEO4J_DATABASE },
 })
 
